@@ -240,4 +240,4 @@ async def convertCurrency(user, amount, currency1, currency2):
 
 
 
-client.run("MTEwOTQ3NDQyMTcxNjAyOTYwMA.GldwXY.IAgdlu-GcG38qm5tOwcxa_Bo6Jjt_4QZYWlYvM")
+client.run("MTEwOTQ3NDQyMTcxNjAyOTYwMA.G7AlV_.Z1jMT8lV5qCoOEFOCQrRXHUNno3serBfDJOxXE")
