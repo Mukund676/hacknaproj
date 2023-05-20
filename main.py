@@ -9,7 +9,7 @@ from currency_converter import CurrencyConverter
 
 c = CurrencyConverter()
 
-os.chdir(r'C:\Users\mvenkatesh\OneDrive - North Allegheny School District\Documents\hackna')
+os.chdir(r'C:\Users\mvenkatesh\OneDrive - North Allegheny School District\Documents\hacknaproj')
 client = commands.Bot(command_prefix = 'e!', intents=discord.Intents.all())
 
 #remove the default help command
