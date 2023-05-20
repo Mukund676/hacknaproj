@@ -2,14 +2,11 @@ import random
 import discord
 from discord.ext import commands
 import json
-import os
-import requests
 from currency_converter import CurrencyConverter
 
 
 c = CurrencyConverter()
 
-os.chdir(r'C:\Users\mvenkatesh\OneDrive - North Allegheny School District\Documents\hacknaproj')
 client = commands.Bot(command_prefix = 'e!', intents=discord.Intents.all())
 
 with(open('config.json')) as g:
@@ -26,6 +23,7 @@ async def on_ready():
     await client.change_presence(activity=discord.Game(name="e!help"))
 
 
+
 @client.command()
 async def balance(ctx):
     await open_account(ctx.author)
@@ -40,6 +38,7 @@ async def balance(ctx):
     embed.add_field(name = "Bank", value = bank_amt)
     embed.add_field(name = "Currency", value = currency)
     await ctx.send(embed = embed)
+
 
 
 @client.command()
@@ -70,6 +69,7 @@ async def help(ctx):
 
 
 
+
 @client.command()
 async def withdraw(ctx, amount = None):
     await open_account(ctx.author)
@@ -88,6 +88,8 @@ async def withdraw(ctx, amount = None):
     await update_bank(ctx.author, amount)
     await update_bank(ctx.author, -1 * amount, "bank")
     await ctx.send(f"You withdrew {amount} {currency}.")
+
+
 
 
 @client.command()
@@ -111,8 +113,10 @@ async def deposit(ctx, amount = None):
     await update_bank(ctx.author, amount, "bank")
     await ctx.send(f"You deposited {amount} {currency}.")
 
+
+
 @client.command()
-async def send(ctx, member: discord.Member, amount = None):
+async def transfer(ctx, member: discord.Member, amount = None):
     await open_account(ctx.author)
     await open_account(member)
     if amount == None:
@@ -136,7 +140,73 @@ async def send(ctx, member: discord.Member, amount = None):
         change = await convertCurrency(ctx.author,amount, currency, currency2)
     await update_bank(ctx.author, -1 *amount, "bank")
     await update_bank(member, change, "bank")
+    await ctx.send(f"You transferred {amount} {currency} to {member}'s bank.")
+
+@client.command()
+async def send(ctx, member: discord.Member, amount = None):
+    await open_account(ctx.author)
+    await open_account(member)
+    if amount == None:
+        await ctx.send("Please enter the amount you want to send.")
+        return
+    if member == None:
+        await ctx.send("Please enter the person you want to send money to.")
+        return
+    bal = await update_bank(ctx.author)
+    currency = bal[2]
+    bal2 = await update_bank(member)
+    currency2 = bal2[2]
+    amount = float(amount)
+    if amount > bal[0]:
+        await ctx.send("You don't have enough money in your wallet.")
+        return
+    if amount < 0:
+        await ctx.send("You can't send negative money.")
+        return
+    if (currency != currency2):
+        change = await convertCurrency(ctx.author,amount, currency, currency2)
+    await update_bank(ctx.author, -1 *amount, "wallet")
+    await update_bank(member, change, "wallet")
     await ctx.send(f"You sent {amount} {currency} to {member}.")
+
+@client.command()
+async def work(ctx):
+    await open_account(ctx.author)
+    users = await get_bank_data()
+    currency = users[str(ctx.author.id)]["currency"]
+    earnings = random.randrange(150)
+    earninginamt = c.convert(earnings, 'USD', currency)
+    await ctx.send(f"You worked and earned {earnings} {currency}!!")
+    users[str(ctx.author.id)]["wallet"] += earnings
+    with open('bank.json', 'w') as f:
+        json.dump(users, f)
+
+
+
+@client.command()
+async def rob(ctx, member: discord.Member):
+    await open_account(ctx.author)
+    await open_account(member)
+
+    bal = await update_bank(ctx.author)
+    currency = bal[2]
+    bal2 = await update_bank(member)
+    currency2 = bal2[2]
+    stolen = random.randrange(0, int(bal2[0]))
+    if bal2[0] == 0:
+        await ctx.send("They have no money in their wallet.")
+        return
+    change = await convertCurrency(ctx.author,stolen, currency2, currency)
+    change = round(change, 2)
+    await update_bank(ctx.author, change)
+    await update_bank(member, -1 * stolen)
+    await ctx.send(f"You robbed {member} and got {change} {currency}.")
+
+
+    
+    
+
+
 
 @client.command()
 async def slots(ctx, amount = None):
