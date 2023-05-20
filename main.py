@@ -12,6 +12,10 @@ c = CurrencyConverter()
 os.chdir(r'C:\Users\mvenkatesh\OneDrive - North Allegheny School District\Documents\hacknaproj')
 client = commands.Bot(command_prefix = 'e!', intents=discord.Intents.all())
 
+with(open('config.json')) as g:
+    config = json.load(g)
+    token = config['token']
+
 #remove the default help command
 client.remove_command('help')
 
@@ -240,4 +244,4 @@ async def convertCurrency(user, amount, currency1, currency2):
 
 
 
-client.run("MTEwOTQ3NDQyMTcxNjAyOTYwMA.G7AlV_.Z1jMT8lV5qCoOEFOCQrRXHUNno3serBfDJOxXE")
+client.run(token)
