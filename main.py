@@ -39,7 +39,7 @@ async def balance(ctx):
     embed.add_field(name = "Bank", value = bank_amt)
     embed.add_field(name = "Currency", value = currency)
     #find the increase or decrease in value of investment
-    value = await findValOfPortfolio(ctx.author)
+    value = await findValOfPortfolio(ctx.author.id)
     #find net change in value of investment
     embed.add_field(name = "Investment Change", value = format((value - investment)/100, '.2f') + "%")
     await ctx.send(embed = embed)
@@ -319,14 +319,18 @@ async def leaderboard(ctx):
     currency = users[str(ctx.author.id)]["currency"]
     leaderboard = []
     for user in users:
+        value = await findValOfPortfolio(user)
         if users[user]["currency"] == currency:
-            leaderboard.append([user, users[user]["wallet"] + users[user]["bank"]])
+            leaderboard.append([user, round(users[user]["wallet"] + users[user]["bank"] + value,2)])
         else:
-            leaderboard.append([user, float(format(c.convert(users[user]["wallet"] + users[user]["bank"], users[user]["currency"], currency), ".2f"))])
+            leaderboard.append([user, float(format(c.convert(users[user]["wallet"] + users[user]["bank"] + await findValOfPortfolio(user), users[user]["currency"], currency), ".2f"))])
+    #sort it by the sum of wallet, bank, and value of portfolio
     leaderboard.sort(key = lambda x: x[1], reverse = True)
-    embed = discord.Embed(title = "Leaderboard", color = discord.Color.red())
+    #print the top users
+    embed = discord.Embed(title = "Leaderboard", description = "Top users in leaderboard", color = discord.Color.red())
     for i in range(len(leaderboard)):
-        embed.add_field(name = str(i + 1) + ". " + client.get_user(int(leaderboard[i][0])).name, value = str(leaderboard[i][1]) + " " + currency, inline = False)
+        user = client.get_user(int(leaderboard[i][0]))
+        embed.add_field(name = f"{i + 1}. {user.name}", value = str(leaderboard[i][1]) + " " + currency, inline = False)
     await ctx.send(embed = embed)
 
 
@@ -464,13 +468,13 @@ async def convertCurrency(user, amount, currency1, currency2):
 
 async def findValOfPortfolio(user):
     users = await get_bank_data()
-    portfolio = users[str(user.id)]["portfolio"]
+    portfolio = users[str(user)]["portfolio"]
     total = 0
     for stock in portfolio:
         #find price of stock
         stock1 = yf.Ticker(stock)
         price = stock1.history()['Close'].iloc[-1]
-        price = c.convert(price, "USD", users[str(user.id)]["currency"])
+        price = c.convert(price, "USD", users[str(user)]["currency"])
         price = float(format(price, ".2f"))
         total += price * portfolio[stock]["shares"]
     return total
